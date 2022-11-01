@@ -4,7 +4,7 @@ class ProfileResponseModel {
   late final List<ClassBooking> classBooking;
   late final List<dynamic> packageBooking;
 
-  ProfileResponseModel.fromJson(Map<dynamic, dynamic> json) {
+  ProfileResponseModel.fromJson(Map<String, dynamic> json) {
     user = User.fromJson(json['user']);
     classBooking = List.from(json['classBooking'])
         .map((e) => ClassBooking.fromJson(e))

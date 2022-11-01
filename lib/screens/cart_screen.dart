@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -30,28 +31,28 @@ class _CartPageState extends State<CartPage> {
   // final _stripePayment = FlutterStripePayment();
   late String paymentMethodId;
 
-  Future<dynamic> createPaymentIntent(
-      String amount, String currency, String paymentId) async {
-    try {
-      Map<String, dynamic> body = {
-        'amount': int.parse(amount.toString()).toString(),
-        'currency': currency,
-        'payment_method': paymentId,
-        'confirm': 'true',
-        'payment_method_types[]': 'card'
-      };
-      var response = await http.post(
-          Uri.parse('https://api.stripe.com/v1/payment_intents'),
-          body: body,
-          headers: {
-            'Authorization': 'Bearer ${clientKey}',
-            'Content-Type': 'application/x-www-form-urlencoded'
-          });
-      return jsonDecode(response.body);
-    } catch (err) {
-      print('err charging user: ${err.toString()}');
-    }
-  }
+  // Future<dynamic> createPaymentIntent(
+  //     String amount, String currency, String paymentId) async {
+  //   try {
+  //     Map<String, dynamic> body = {
+  //       'amount': int.parse(amount.toString()).toString(),
+  //       'currency': currency,
+  //       'payment_method': paymentId,
+  //       'confirm': 'true',
+  //       'payment_method_types[]': 'card'
+  //     };
+  //     var response = await http.post(
+  //         Uri.parse('https://api.stripe.com/v1/payment_intents'),
+  //         body: body,
+  //         headers: {
+  //           'Authorization': 'Bearer ${clientKey}',
+  //           'Content-Type': 'application/x-www-form-urlencoded'
+  //         });
+  //     return jsonDecode(response.body);
+  //   } catch (err) {
+  //     print('err charging user: ${err.toString()}');
+  //   }
+  // }
 
   // Future<void> ProcessPayment(
   //     String clientKey, double amount, dynamic paymentId) async {
@@ -137,6 +138,189 @@ class _CartPageState extends State<CartPage> {
   //     });
   //   }
   // }
+
+  //--------------------------------------------
+  Map<String, dynamic>? paymentIntentData;
+  void makePayment() async {
+    try {
+      paymentIntentData = await createPaymentIntent(
+        Provider.of<CartProvider>(context, listen: false)
+            .totalAmount
+            .toInt()
+            .toString(),
+        "USD",
+      ); //json.decode(response.body);
+      // print('Response body==>${response.body.toString()}');
+      await Stripe.instance
+          .initPaymentSheet(
+              paymentSheetParameters: SetupPaymentSheetParameters(
+                  paymentIntentClientSecret:
+                      paymentIntentData!['client_secret'],
+                  applePay: true,
+                  googlePay: true,
+                  style: ThemeMode.dark,
+                  merchantCountryCode: 'US',
+                  merchantDisplayName: 'ANNIE'))
+          .then((val) {
+        // if (value != null) {
+        //   if (value) {
+        //     Navigator.of(context).pushAndRemoveUntil(
+        //         MaterialPageRoute(builder: (context) => OrderConfirmed()),
+        //         (Route<dynamic> route) => false);
+        //   }
+        //   setState(() {
+        //     isLoading = false;
+        //   });
+
+        // Navigator.of(context).pushAndRemoveUntil(
+        //     MaterialPageRoute(builder: (context) => OrderConfirmed()),
+        //     (Route<dynamic> route) => false);
+      });
+
+      ///now finally display payment sheeet
+      displayPaymentSheet();
+    } catch (e, s) {
+      print('exception:$e$s');
+    }
+  }
+
+  displayPaymentSheet() async {
+    try {
+      await Stripe.instance
+          .presentPaymentSheet(
+              parameters: PresentPaymentSheetParameters(
+        clientSecret: paymentIntentData!['client_secret'],
+        confirmPayment: true,
+      ))
+          .then((newValue) {
+        print('payment intent' + paymentIntentData!['id'].toString());
+        print(
+            'payment intent' + paymentIntentData!['client_secret'].toString());
+        print('payment intent' + paymentIntentData!['amount'].toString());
+        print('payment intent' + paymentIntentData.toString());
+        //orderPlaceApi(paymentIntentData!['id'].toString());
+
+        SharedPrefs.getUserToken().then((token) {
+          SharedPrefs.getUserId().then((userId) {
+            var orderProvider =
+                Provider.of<CartProvider>(context, listen: false);
+
+            orderProvider.createOrder(token, userId).then((response) {
+              setState(() {
+                isLoading = false;
+              });
+              Provider.of<CartProvider>(context, listen: false).clearCart();
+
+              if (response.code == 200 || response.code == 201) {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => OrderConfirmed()));
+              } else {
+                Fluttertoast.showToast(
+                    msg: response.message,
+                    toastLength: Toast.LENGTH_LONG,
+                    textColor: Colors.red,
+                    timeInSecForIosWeb: 1);
+
+                setState(() {
+                  isLoading = false;
+                });
+              }
+            });
+          });
+        }
+
+            //       apiService
+            //           .classBooking(
+            //               userId,
+            //               widget.classId,
+            //               IntentResponse['id'],
+            //               IntentResponse['payment_method'],
+            //               jsonEncode(IntentResponse),
+            //               widget.amount,
+            //               _trueFromDateSend,
+            //               _trueToDateSend,
+            //               _fromTimeDisplay,
+            //               _toTimeDisplay,
+            //               "4",
+            //               token,
+            //               dropdownValue.id)
+            //           .then((value) {
+            //         if (value != null) {
+            //           if (value) {
+            //             Navigator.of(context).pushAndRemoveUntil(
+            //                 MaterialPageRoute(builder: (context) => OrderConfirmed()),
+            //                 (Route<dynamic> route) => false);
+            //           }
+            //           setState(() {
+            //             isLoading = false;
+            //           });
+            //         }
+            //       });
+
+            //       Navigator.of(context).pushAndRemoveUntil(
+            //           MaterialPageRoute(builder: (context) => OrderConfirmed()),
+            //           (Route<dynamic> route) => false);
+            //       //  _stripePayment.confirmPaymentIntent(clientSecret, stripePaymentMethodId, amount)
+            //     });
+            //   } else {
+            //     _errorMessage = paymentResponse.errorMessage.toString();
+            //     setState(() {
+            //       isLoading = false;
+            //     });
+
+            // Navigator.of(context).pushAndRemoveUntil(
+            //     MaterialPageRoute(builder: (context) => OrderConfirmed()),
+            //     (Route<dynamic> route) => false);
+
+            // setState(() {
+            //   isLoading = false;
+            // });
+
+            );
+        paymentIntentData = null;
+      }).onError((error, stackTrace) {
+        print('Exception/DISPLAYPAYMENTSHEET==> $error $stackTrace');
+      });
+    } on StripeException catch (e) {
+      print('Exception/DISPLAYPAYMENTSHEET==> $e');
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                content: Text("Cancelled "),
+              ));
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+  //  Future<Map<String, dynamic>>
+  createPaymentIntent(String amount, String currency) async {
+    try {
+      Map<String, dynamic> body = {
+        'amount': calculateAmount('20'),
+        'currency': currency,
+        'payment_method_types[]': 'card'
+      };
+      print(body);
+      var response = await http.post(
+          Uri.parse('https://api.stripe.com/v1/payment_intents'),
+          body: body,
+          headers: {
+            'Authorization': 'Bearer ${secretKey}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          });
+      print('Create Intent reponse ===> ${response.body.toString()}');
+      return jsonDecode(response.body);
+    } catch (err) {
+      print('err charging user: ${err.toString()}');
+    }
+  }
+
+  calculateAmount(String amount) {
+    final a = (int.parse(amount)) * 100;
+    return a.toString();
+  }
+  //---------------------------------
 
   @override
   void initState() {
@@ -410,7 +594,7 @@ class _CartPageState extends State<CartPage> {
                       setState(() {
                         isLoading = true;
                       });
-                      // StripePayment();
+                      makePayment();
                     },
                     child: Container(
                       margin: EdgeInsets.symmetric(horizontal: 20),

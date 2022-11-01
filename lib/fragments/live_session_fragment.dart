@@ -16,6 +16,7 @@ class _LiveSessionFragmentState extends State<LiveSessionFragment> {
 
   @override
   void initState() {
+    //''''''''
     super.initState();
   }
 
@@ -27,7 +28,6 @@ class _LiveSessionFragmentState extends State<LiveSessionFragment> {
       decoration: const BoxDecoration(
           image: DecorationImage(
               image: AssetImage("images/live_session.jpg"), fit: BoxFit.cover)),
-
     );
   }
 }

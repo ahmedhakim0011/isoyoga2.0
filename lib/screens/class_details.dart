@@ -101,10 +101,12 @@ class _ClassDetailsState extends State<ClassDetails> {
 
 //---------------------------------------------------------------
 
-  void makePayment() async {
+  Future<dynamic> makePayment() async {
     try {
-      paymentIntentData =
-          await createPaymentIntent('20', 'USD'); //json.decode(response.body);
+      paymentIntentData = await createPaymentIntent(
+        widget.amount,
+        "USD",
+      ); //json.decode(response.body);
       // print('Response body==>${response.body.toString()}');
       await Stripe.instance
           .initPaymentSheet(
@@ -139,7 +141,7 @@ class _ClassDetailsState extends State<ClassDetails> {
     }
   }
 
-  displayPaymentSheet() async {
+  Future displayPaymentSheet() async {
     try {
       await Stripe.instance
           .presentPaymentSheet(
@@ -149,19 +151,63 @@ class _ClassDetailsState extends State<ClassDetails> {
       ))
           .then((newValue) {
         print('payment intent' + paymentIntentData!['id'].toString());
+
         print(
             'payment intent' + paymentIntentData!['client_secret'].toString());
         print('payment intent' + paymentIntentData!['amount'].toString());
         print('payment intent' + paymentIntentData.toString());
         //orderPlaceApi(paymentIntentData!['id'].toString());
 
+        apiService
+            .classBooking(
+                userId,
+                widget.classId,
+                paymentIntentData!['id'],
+                paymentIntentData!['payment_method'],
+                jsonEncode(paymentIntentData),
+                widget.amount,
+                _trueFromDateSend,
+                _trueToDateSend,
+                _fromTimeDisplay,
+                _toTimeDisplay,
+                "4",
+                token,
+                dropdownValue.id)
+            .then((value) {
+          if (value != null) {
+            if (value) {
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => OrderConfirmed()),
+                  (Route<dynamic> route) => false);
+            }
+            setState(() {
+              isLoading = false;
+            });
+          }
+        });
+
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => OrderConfirmed()),
             (Route<dynamic> route) => false);
 
-        setState(() {
-          isLoading = false;
-        });
+        //       Navigator.of(context).pushAndRemoveUntil(
+        //           MaterialPageRoute(builder: (context) => OrderConfirmed()),
+        //           (Route<dynamic> route) => false);
+        //       //  _stripePayment.confirmPaymentIntent(clientSecret, stripePaymentMethodId, amount)
+        //     });
+        //   } else {
+        //     _errorMessage = paymentResponse.errorMessage.toString();
+        //     setState(() {
+        //       isLoading = false;
+        //     });
+
+        // Navigator.of(context).pushAndRemoveUntil(
+        //     MaterialPageRoute(builder: (context) => OrderConfirmed()),
+        //     (Route<dynamic> route) => false);
+
+        // setState(() {
+        //   isLoading = false;
+        // });
 
         paymentIntentData = null;
       }).onError((error, stackTrace) {
@@ -183,7 +229,7 @@ class _ClassDetailsState extends State<ClassDetails> {
   createPaymentIntent(String amount, String currency) async {
     try {
       Map<String, dynamic> body = {
-        'amount': calculateAmount('20'),
+        'amount': amount,
         'currency': currency,
         'payment_method_types[]': 'card'
       };

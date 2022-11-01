@@ -17,7 +17,7 @@ class LiveStreming extends StatefulWidget {
 }
 
 class _MyAppState extends State<LiveStreming> {
-  String channelName = "c-id-2";
+  String channelName = "c-id-1";
   String token =
       '006bc95efaa65f848ecb6f6ead1967ee310IAAEwCjpxiZHHx7B+FTPLZVuyjq8MS8FuzuLMFQ3p26PPvjn/ufl4DHFEAB3fpOyos1dYwEAAQAyilxj';
   int? uid; // uid of the local user
@@ -43,7 +43,7 @@ class _MyAppState extends State<LiveStreming> {
   getToken() async {
     //  final uri = Uri.parse('${apiGlobal}/relative/getSingleUser/1234');
     final uri = Uri.parse(
-        'http://isoyoga.jumppace.com:3002/rtc/c-id-2/audience/uid/${userId}');
+        'http://isoyoga.jumppace.com:3002/rtc/c-id-1/audience/uid/${userId}');
     print(uri);
     var request = http.MultipartRequest('GET', uri);
     var response = await request.send();
