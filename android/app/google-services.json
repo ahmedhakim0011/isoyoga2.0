@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "269348248664",
+    "project_id": "yoga-studio-f2316",
+    "storage_bucket": "yoga-studio-f2316.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269348248664:android:93b655cb01eb1129bbbe2d",
+        "android_client_info": {
+          "package_name": "com.yoga.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "269348248664-a8m59bco993igd5ok99q14tu3t4ps7i9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yoga.app",
+            "certificate_hash": "fe7e529a8ad6c856b5f756b3321cade96424618c"
+          }
+        },
+        {
+          "client_id": "269348248664-hh4a474mjsrga36sm18frkgk5v3tpj51.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFfB003sUklKOqogAcAKjuV1u2pP4P13c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "269348248664-hh4a474mjsrga36sm18frkgk5v3tpj51.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "269348248664-4o06kguuq9s7aqnokgsqkgo3v2g430di.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yoga.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
